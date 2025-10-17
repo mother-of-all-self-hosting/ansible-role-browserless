@@ -15,12 +15,6 @@
     - browserless_path_prefix
     - browserless_container_network
 
-- name: Fail if Browserless stateful mode option is invalid
-  ansible.builtin.fail:
-    msg: >-
-      browserless_environment_variables_browserless_stateful_mode must be 'hash', 'simple', or 'disabled'
-  when: "browserless_environment_variables_browserless_stateful_mode not in ['hash', 'simple', 'disabled']"
-
 - name: Run if Traefik is enabled
   when: browserless_container_labels_traefik_enabled | bool
   block:

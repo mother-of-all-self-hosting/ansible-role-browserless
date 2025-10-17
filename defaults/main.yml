@@ -175,9 +175,5 @@ browserless_systemd_wanted_services_list_default: []
 browserless_systemd_wanted_services_list_auto: []
 browserless_systemd_wanted_services_list_custom: []
 
-browserless_environment_variables_browserless_stateful_mode: simple
-
-browserless_environment_variables_browserless_worker_count: 1
-
 # Additional environment variables.
 browserless_environment_variables_additional_variables: ''
