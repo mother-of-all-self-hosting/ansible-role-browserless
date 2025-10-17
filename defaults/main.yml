@@ -28,13 +28,13 @@ browserless_gid: ''
 
 browserless_scheme: https
 
-# The hostname at which Configuration Manager is served.
+# The hostname at which Browserless is served.
 browserless_hostname: ''
 
-# The path at which Configuration Manager is exposed.
+# The path at which Browserless is exposed.
 # This value must either be `/` or not end with a slash (e.g. `/browserless`).
 #
-# Hosting Configuration Manager under a subpath does not seem to be possible due to Browserless's
+# Hosting Browserless under a subpath does not seem to be possible due to Browserless's
 # technical limitations.
 browserless_path_prefix: /
 
