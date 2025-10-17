@@ -7,7 +7,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
-# Project source code URL: https://github.com/caronc/browserless-api
+# Project source code URL: https://github.com/browserless/browserless
 
 browserless_enabled: true
 
@@ -20,8 +20,8 @@ browserless_attach_path: "{{ browserless_data_path }}/attach"
 browserless_config_path: "{{ browserless_data_path }}/config"
 browserless_plugin_path: "{{ browserless_data_path }}/plugin"
 
-# renovate: datasource=docker depName=caronc/browserless
-browserless_version: 1.2.2
+# renovate: datasource=docker depName=ghcr.io/browserless/chromium
+browserless_version: v2.37.1
 
 browserless_uid: ''
 browserless_gid: ''
@@ -38,17 +38,17 @@ browserless_hostname: ''
 # technical limitations.
 browserless_path_prefix: /
 
-browserless_container_image: "{{ browserless_container_image_registry_prefix }}caronc/browserless:{{ browserless_container_image_tag }}"
+browserless_container_image: "{{ browserless_container_image_registry_prefix }}browserless/chromium:{{ browserless_container_image_tag }}"
 browserless_container_image_tag: "{{ browserless_version }}"
 browserless_container_image_registry_prefix: "{{ browserless_container_image_registry_prefix_upstream }}"
 browserless_container_image_registry_prefix_upstream: "{{ browserless_container_image_registry_prefix_upstream_default }}"
-browserless_container_image_registry_prefix_upstream_default: docker.io/
+browserless_container_image_registry_prefix_upstream_default: ghcr.io/
 browserless_container_image_force_pull: "{{ browserless_container_image.endswith(':latest') }}"
 
 browserless_container_image_self_build: false
 browserless_container_image_self_build_name: "caronc/browserless:{{ browserless_container_image_self_build_repo_version }}"
-browserless_container_image_self_build_repo: "https://github.com/caronc/browserless-api.git"
-browserless_container_image_self_build_repo_version: "{{ 'v' + browserless_version if browserless_version != 'latest' else 'main' }}"
+browserless_container_image_self_build_repo: "https://github.com/browserless/browserless.git"
+browserless_container_image_self_build_repo_version: "{{ browserless_version if browserless_version != 'latest' else 'main' }}"
 browserless_container_image_self_build_src_files_path: "{{ browserless_base_path }}/docker-src"
 
 # Controls whether the container exposes its HTTP port (tcp/8080 in the container).
