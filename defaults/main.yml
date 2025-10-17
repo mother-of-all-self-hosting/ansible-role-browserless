@@ -46,12 +46,7 @@ browserless_container_image_registry_prefix: "{{ browserless_container_image_reg
 browserless_container_image_registry_prefix_upstream: "{{ browserless_container_image_registry_prefix_upstream_default }}"
 browserless_container_image_registry_prefix_upstream_default: ghcr.io/
 browserless_container_image_force_pull: "{{ browserless_container_image.endswith(':latest') }}"
-
-browserless_container_image_self_build: false
-browserless_container_image_self_build_name: "caronc/browserless:{{ browserless_container_image_self_build_repo_version }}"
-browserless_container_image_self_build_repo: "https://github.com/browserless/browserless.git"
-browserless_container_image_self_build_repo_version: "{{ browserless_version if browserless_version != 'latest' else 'main' }}"
-browserless_container_image_self_build_src_files_path: "{{ browserless_base_path }}/docker-src"
+# TODO: add tasks to self-build the image
 
 # Controls whether the container exposes its HTTP port (tcp/8080 in the container).
 #

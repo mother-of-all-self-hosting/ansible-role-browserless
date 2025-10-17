@@ -47,7 +47,7 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
       {% for arg in browserless_container_extra_arguments %}
       {{ arg }} \
       {% endfor %}
-      {{ browserless_container_image_self_build_name if browserless_container_image_self_build else browserless_container_image }}
+      {{ browserless_container_image }}
 
 {% for network in browserless_container_additional_networks %}
 ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} network connect {{ network }} {{ browserless_identifier }}
