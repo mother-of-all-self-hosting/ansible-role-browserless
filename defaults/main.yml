@@ -24,7 +24,7 @@ browserless_gid: "0"
 browserless_scheme: https
 
 # The hostname at which Browserless is served.
-browserless_hostname: ''
+browserless_hostname: ""
 
 # The path at which Browserless is exposed.
 # This value must either be `/` or not end with a slash (e.g. `/browserless`).
@@ -46,7 +46,7 @@ browserless_container_image_force_pull: "{{ browserless_container_image.endswith
 # Controls whether the container exposes its HTTP port (tcp/8080 in the container).
 #
 # Takes an "<ip>:<port>" or "<port>" value (e.g. "127.0.0.1:2586"), or empty string to not expose.
-browserless_container_http_host_bind_port: ''
+browserless_container_http_host_bind_port: ""
 
 # The base container network. It will be auto-created by this role if it doesn't exist already.
 browserless_container_network: "{{ browserless_identifier }}"
@@ -112,7 +112,7 @@ browserless_container_labels_traefik_additional_response_headers_custom: {}
 # browserless_container_labels_additional_labels: |
 #   my.label=1
 #   another.label="here"
-browserless_container_labels_additional_labels: ''
+browserless_container_labels_additional_labels: ""
 
 # A list of extra arguments to pass to the container (`docker run` command)
 browserless_container_extra_arguments: []
@@ -177,4 +177,4 @@ browserless_systemd_wanted_services_list_auto: []
 browserless_systemd_wanted_services_list_custom: []
 
 # Additional environment variables.
-browserless_environment_variables_additional_variables: ''
+browserless_environment_variables_additional_variables: ""
