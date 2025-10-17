@@ -38,7 +38,9 @@ browserless_hostname: ''
 # technical limitations.
 browserless_path_prefix: /
 
-browserless_container_image: "{{ browserless_container_image_registry_prefix }}browserless/chromium:{{ browserless_container_image_tag }}"
+browserless_container_image_app: chromium
+
+browserless_container_image: "{{ browserless_container_image_registry_prefix }}browserless/{{ browserless_container_image_app }}:{{ browserless_container_image_tag }}"
 browserless_container_image_tag: "{{ browserless_version }}"
 browserless_container_image_registry_prefix: "{{ browserless_container_image_registry_prefix_upstream }}"
 browserless_container_image_registry_prefix_upstream: "{{ browserless_container_image_registry_prefix_upstream_default }}"
