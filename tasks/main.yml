@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2023 Slavi Pantaleev
+# SPDX-FileCopyrightText: 2025 Suguru Hirahara
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+- name: Perform Apprise API installation tasks
+  when: apprise_enabled | bool
+  tags:
+    - setup-all
+    - setup-apprise
+    - install-all
+    - install-apprise
+  block:
+    - name: Validate Apprise API configuration
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
+    - name: Install Apprise API
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/install.yml"
+
+- name: Perform Apprise API uninstallation tasks
+  when: not apprise_enabled | bool
+  tags:
+    - setup-all
+    - setup-apprise
+  block:
+    - name: Uninstall Apprise API
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/uninstall.yml"

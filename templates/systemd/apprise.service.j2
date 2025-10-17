@@ -1,0 +1,66 @@
+{#
+SPDX-FileCopyrightText: 2023 Slavi Pantaleev
+SPDX-FileCopyrightText: 2024 Nikita Chernyi
+SPDX-FileCopyrightText: 2025 Suguru Hirahara
+
+SPDX-License-Identifier: AGPL-3.0-or-later
+#}
+
+[Unit]
+Description=Apprise API ({{ apprise_identifier }})
+{% for service in apprise_systemd_required_services_list %}
+Requires={{ service }}
+After={{ service }}
+{% endfor %}
+{% for service in apprise_systemd_wanted_services_list %}
+Wants={{ service }}
+{% endfor %}
+DefaultDependencies=no
+
+[Service]
+Type=simple
+Environment="HOME={{ devture_systemd_docker_base_systemd_unit_home_path }}"
+ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} stop -t {{ devture_systemd_docker_base_container_stop_grace_time_seconds }} {{ apprise_identifier }} 2>/dev/null || true'
+ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm {{ apprise_identifier }} 2>/dev/null || true'
+
+{#
+  PUID and PGID are specified on env.j2 to run the container as apprise_uid:apprise_gid
+#}
+ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
+      --rm \
+      --name={{ apprise_identifier }} \
+      --log-driver=none \
+      --cap-drop=ALL \
+      --cap-add=CAP_DAC_OVERRIDE \
+      --cap-add=CHOWN \
+      --cap-add=SETUID \
+      --cap-add=SETGID \
+      --network={{ apprise_container_network }} \
+      {% if apprise_container_http_host_bind_port %}
+      -p {{ apprise_container_http_host_bind_port }}:{{ apprise_container_http_port }} \
+      {% endif %}
+      --env-file={{ apprise_base_path }}/env \
+      --label-file={{ apprise_base_path }}/labels \
+      --mount type=bind,src={{ apprise_attach_path }},dst=/attach \
+      --mount type=bind,src={{ apprise_config_path }},dst=/config \
+      --mount type=bind,src={{ apprise_plugin_path }},dst=/plugin \
+      {% for arg in apprise_container_extra_arguments %}
+      {{ arg }} \
+      {% endfor %}
+      {{ apprise_container_image_self_build_name if apprise_container_image_self_build else apprise_container_image }}
+
+{% for network in apprise_container_additional_networks %}
+ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} network connect {{ network }} {{ apprise_identifier }}
+{% endfor %}
+
+ExecStart={{ devture_systemd_docker_base_host_command_docker }} start --attach {{ apprise_identifier }}
+
+ExecStop=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} stop -t {{ devture_systemd_docker_base_container_stop_grace_time_seconds }} {{ apprise_identifier }} 2>/dev/null || true'
+ExecStop=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm {{ apprise_identifier }} 2>/dev/null || true'
+
+Restart=always
+RestartSec=30
+SyslogIdentifier={{ apprise_identifier }}
+
+[Install]
+WantedBy=multi-user.target

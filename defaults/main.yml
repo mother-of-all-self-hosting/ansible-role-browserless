@@ -1,0 +1,192 @@
+# SPDX-FileCopyrightText: 2023 - 2024 Nikita Chernyi
+# SPDX-FileCopyrightText: 2023 - 2025 Slavi Pantaleev
+# SPDX-FileCopyrightText: 2024 Sergio Durigan Junior
+# SPDX-FileCopyrightText: 2025 MASH project contributors
+# SPDX-FileCopyrightText: 2025 Suguru Hirahara
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+# Project source code URL: https://github.com/caronc/apprise-api
+
+apprise_enabled: true
+
+apprise_identifier: apprise
+apprise_base_path: "/{{ apprise_identifier }}"
+
+# `apprise_data_path` is used for storing data in mounted directories
+apprise_data_path: "{{ apprise_base_path }}/data"
+apprise_attach_path: "{{ apprise_data_path }}/attach"
+apprise_config_path: "{{ apprise_data_path }}/config"
+apprise_plugin_path: "{{ apprise_data_path }}/plugin"
+
+# renovate: datasource=docker depName=caronc/apprise
+apprise_version: 1.2.2
+
+apprise_uid: ''
+apprise_gid: ''
+
+apprise_scheme: https
+
+# The hostname at which Configuration Manager is served.
+apprise_hostname: ''
+
+# The path at which Configuration Manager is exposed.
+# This value must either be `/` or not end with a slash (e.g. `/apprise`).
+#
+# Hosting Configuration Manager under a subpath does not seem to be possible due to Apprise's
+# technical limitations.
+apprise_path_prefix: /
+
+apprise_container_image: "{{ apprise_container_image_registry_prefix }}caronc/apprise:{{ apprise_container_image_tag }}"
+apprise_container_image_tag: "{{ apprise_version }}"
+apprise_container_image_registry_prefix: "{{ apprise_container_image_registry_prefix_upstream }}"
+apprise_container_image_registry_prefix_upstream: "{{ apprise_container_image_registry_prefix_upstream_default }}"
+apprise_container_image_registry_prefix_upstream_default: docker.io/
+apprise_container_image_force_pull: "{{ apprise_container_image.endswith(':latest') }}"
+
+apprise_container_image_self_build: false
+apprise_container_image_self_build_name: "caronc/apprise:{{ apprise_container_image_self_build_repo_version }}"
+apprise_container_image_self_build_repo: "https://github.com/caronc/apprise-api.git"
+apprise_container_image_self_build_repo_version: "{{ 'v' + apprise_version if apprise_version != 'latest' else 'main' }}"
+apprise_container_image_self_build_src_files_path: "{{ apprise_base_path }}/docker-src"
+
+# Controls whether the container exposes its HTTP port (tcp/8080 in the container).
+#
+# Takes an "<ip>:<port>" or "<port>" value (e.g. "127.0.0.1:2586"), or empty string to not expose.
+apprise_container_http_host_bind_port: ''
+
+# The base container network. It will be auto-created by this role if it doesn't exist already.
+apprise_container_network: "{{ apprise_identifier }}"
+
+# The port number in the container
+apprise_container_http_port: 8000
+
+# A list of additional container networks that the container would be connected to.
+# The role does not create these networks, so make sure they already exist.
+# Use this to expose this container to another reverse proxy, which runs in a different container network.
+apprise_container_additional_networks: "{{ apprise_container_additional_networks_auto + apprise_container_additional_networks_custom }}"
+apprise_container_additional_networks_auto: []
+apprise_container_additional_networks_custom: []
+
+# A list of additional "volumes" to mount in the container.
+# This list gets populated dynamically at runtime. You can provide a different default value,
+# if you wish to mount your own files into the container.
+# Contains definition objects like this: `{"type": "bind", "src": "/outside", "dst": "/inside", "options": "readonly"}.
+# See the `--mount` documentation for the `docker run` command.
+apprise_container_additional_volumes: "{{ apprise_container_additional_volumes_auto + apprise_container_additional_volumes_custom }}"
+apprise_container_additional_volumes_auto: []
+apprise_container_additional_volumes_custom: []
+
+# apprise_container_labels_traefik_enabled controls whether labels to assist a Traefik reverse-proxy will be attached to the container.
+# See `../templates/labels.j2` for details.
+#
+# To inject your own other container labels, see `apprise_container_labels_additional_labels`.
+apprise_container_labels_traefik_enabled: false
+apprise_container_labels_traefik_docker_network: "{{ apprise_container_network }}"
+apprise_container_labels_traefik_hostname: "{{ apprise_hostname }}"
+# The path prefix must either be `/` or not end with a slash (e.g. `/apprise`).
+apprise_container_labels_traefik_path_prefix: "{{ apprise_path_prefix }}"
+apprise_container_labels_traefik_rule: "Host(`{{ apprise_container_labels_traefik_hostname }}`){% if apprise_container_labels_traefik_path_prefix != '/' %} && PathPrefix(`{{ apprise_container_labels_traefik_path_prefix }}`){% endif %}"
+apprise_container_labels_traefik_priority: 0
+apprise_container_labels_traefik_entrypoints: web-secure
+apprise_container_labels_traefik_tls: "{{ apprise_container_labels_traefik_entrypoints != 'web' }}"
+apprise_container_labels_traefik_tls_certResolver: default  # noqa var-naming
+
+# Controls which additional headers to attach to all HTTP requests.
+# To add your own custom request headers, use `apprise_container_labels_traefik_additional_request_headers_custom`
+apprise_container_labels_traefik_additional_request_headers: "{{ apprise_container_labels_traefik_additional_request_headers_auto | combine(apprise_container_labels_traefik_additional_request_headers_custom) }}"
+apprise_container_labels_traefik_additional_request_headers_auto: {}
+apprise_container_labels_traefik_additional_request_headers_custom: {}
+
+# Controls which additional headers to attach to all HTTP responses.
+# To add your own custom response headers, use `apprise_container_labels_traefik_additional_response_headers_custom`
+apprise_container_labels_traefik_additional_response_headers: "{{ apprise_container_labels_traefik_additional_response_headers_auto | combine(apprise_container_labels_traefik_additional_response_headers_custom) }}"
+apprise_container_labels_traefik_additional_response_headers_auto: |
+  {{
+    {}
+    | combine ({'X-XSS-Protection': apprise_http_header_xss_protection} if apprise_http_header_xss_protection else {})
+    | combine ({'X-Content-Type-Options': apprise_http_header_content_type_options} if apprise_http_header_content_type_options else {})
+    | combine ({'Content-Security-Policy': apprise_http_header_content_security_policy} if apprise_http_header_content_security_policy else {})
+    | combine ({'Permissions-Policy': apprise_http_header_permissions_policy} if apprise_http_header_permissions_policy else {})
+    | combine ({'Strict-Transport-Security': apprise_http_header_strict_transport_security} if apprise_http_header_strict_transport_security and apprise_container_labels_traefik_tls else {})
+  }}
+apprise_container_labels_traefik_additional_response_headers_custom: {}
+
+# apprise_container_labels_additional_labels contains a multiline string with additional labels to add to the container label file.
+# See `../templates/labels.j2` for details.
+#
+# Example:
+# apprise_container_labels_additional_labels: |
+#   my.label=1
+#   another.label="here"
+apprise_container_labels_additional_labels: ''
+
+# A list of extra arguments to pass to the container (`docker run` command)
+apprise_container_extra_arguments: []
+
+# Specifies the value of the `X-XSS-Protection` header
+# Stops pages from loading when they detect reflected cross-site scripting (XSS) attacks.
+#
+# Learn more about it is here:
+# - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection
+# - https://portswigger.net/web-security/cross-site-scripting/reflected
+apprise_http_header_xss_protection: "1; mode=block"
+
+# Specifies the value of the `X-Content-Type-Options` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
+apprise_http_header_content_type_options: nosniff
+
+# Specifies the value of the `Content-Security-Policy` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
+apprise_http_header_content_security_policy: frame-ancestors 'self'
+
+# Specifies the value of the `Permissions-Policy` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy
+apprise_http_header_permissions_policy: "{{ 'interest-cohort=()' if apprise_floc_optout_enabled else '' }}"
+
+# Specifies the value of the `Strict-Transport-Security` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
+apprise_http_header_strict_transport_security: "max-age=31536000; includeSubDomains{{ '; preload' if apprise_hsts_preload_enabled else '' }}"
+
+# Controls whether to send a "Permissions-Policy interest-cohort=();" header along with all responses
+#
+# Learn more about what it is here:
+# - https://www.eff.org/deeplinks/2021/03/googles-floc-terrible-idea
+# - https://paramdeo.com/blog/opting-your-website-out-of-googles-floc-network
+# - https://amifloced.org/
+#
+# Of course, a better solution is to just stop using browsers (like Chrome), which participate in such tracking practices.
+# See: `apprise_http_header_permissions_policy`
+apprise_floc_optout_enabled: true
+
+# Controls if HSTS preloading is enabled
+#
+# In its strongest and recommended form, the [HSTS policy](https://www.chromium.org/hsts) includes all subdomains, and
+# indicates a willingness to be "preloaded" into browsers:
+# `Strict-Transport-Security: max-age=31536000; includeSubDomains; preload`
+# For more information visit:
+# - https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security
+# - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
+# - https://hstspreload.org/#opt-in
+# See: `apprise_http_header_strict_transport_security`
+apprise_hsts_preload_enabled: false
+
+# List of systemd services that the Apprise API systemd service depends on
+apprise_systemd_required_services_list: "{{ apprise_systemd_required_services_list_default + apprise_systemd_required_services_list_auto + apprise_systemd_required_services_list_custom }}"
+apprise_systemd_required_services_list_default: "{{ [devture_systemd_docker_base_docker_service_name] if devture_systemd_docker_base_docker_service_name else [] }}"
+apprise_systemd_required_services_list_auto: []
+apprise_systemd_required_services_list_custom: []
+
+# List of systemd services that the Apprise API systemd service wants
+apprise_systemd_wanted_services_list: "{{ apprise_systemd_wanted_services_list_default + apprise_systemd_wanted_services_list_auto + apprise_systemd_wanted_services_list_custom }}"
+apprise_systemd_wanted_services_list_default: []
+apprise_systemd_wanted_services_list_auto: []
+apprise_systemd_wanted_services_list_custom: []
+
+apprise_environment_variables_apprise_stateful_mode: simple
+
+apprise_environment_variables_apprise_worker_count: 1
+
+# Additional environment variables.
+apprise_environment_variables_additional_variables: ''
