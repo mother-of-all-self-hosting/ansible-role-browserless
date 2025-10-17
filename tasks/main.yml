@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
-- name: Perform Browserless API installation tasks
+- name: Perform Browserless installation tasks
   when: browserless_enabled | bool
   tags:
     - setup-all
@@ -12,16 +12,16 @@
     - install-all
     - install-browserless
   block:
-    - name: Validate Browserless API configuration
+    - name: Validate Browserless configuration
       ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
-    - name: Install Browserless API
+    - name: Install Browserless
       ansible.builtin.include_tasks: "{{ role_path }}/tasks/install.yml"
 
-- name: Perform Browserless API uninstallation tasks
+- name: Perform Browserless uninstallation tasks
   when: not browserless_enabled | bool
   tags:
     - setup-all
     - setup-browserless
   block:
-    - name: Uninstall Browserless API
+    - name: Uninstall Browserless
       ansible.builtin.include_tasks: "{{ role_path }}/tasks/uninstall.yml"
