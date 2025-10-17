@@ -41,9 +41,6 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
       {% endif %}
       --env-file={{ browserless_base_path }}/env \
       --label-file={{ browserless_base_path }}/labels \
-      --mount type=bind,src={{ browserless_attach_path }},dst=/attach \
-      --mount type=bind,src={{ browserless_config_path }},dst=/config \
-      --mount type=bind,src={{ browserless_plugin_path }},dst=/plugin \
       {% for arg in browserless_container_extra_arguments %}
       {{ arg }} \
       {% endfor %}

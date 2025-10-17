@@ -14,12 +14,6 @@ browserless_enabled: true
 browserless_identifier: browserless
 browserless_base_path: "/{{ browserless_identifier }}"
 
-# `browserless_data_path` is used for storing data in mounted directories
-browserless_data_path: "{{ browserless_base_path }}/data"
-browserless_attach_path: "{{ browserless_data_path }}/attach"
-browserless_config_path: "{{ browserless_data_path }}/config"
-browserless_plugin_path: "{{ browserless_data_path }}/plugin"
-
 # renovate: datasource=docker depName=ghcr.io/browserless/chromium
 browserless_version: v2.37.1
 

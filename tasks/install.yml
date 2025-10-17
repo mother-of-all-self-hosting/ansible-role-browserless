@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
-- name: Ensure Browserless paths exist
+- name: Ensure Browserless path exists
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
@@ -13,10 +13,6 @@
     group: "{{ browserless_gid }}"
   with_items:
     - "{{ browserless_base_path }}"
-    - "{{ browserless_data_path }}"
-    - "{{ browserless_attach_path }}"
-    - "{{ browserless_config_path }}"
-    - "{{ browserless_plugin_path }}"
 
 - name: Ensure Browserless support files installed
   ansible.builtin.template:
