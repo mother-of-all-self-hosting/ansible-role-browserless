@@ -24,17 +24,14 @@ ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_s
 ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm {{ browserless_identifier }} 2>/dev/null || true'
 
 {#
-  PUID and PGID are specified on env.j2 to run the container as browserless_uid:browserless_gid
+  Setting --read-only prevents the container from working properly.
 #}
 ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
       --rm \
       --name={{ browserless_identifier }} \
       --log-driver=none \
+      --user={{ browserless_uid }}:{{ browserless_gid }} \
       --cap-drop=ALL \
-      --cap-add=CAP_DAC_OVERRIDE \
-      --cap-add=CHOWN \
-      --cap-add=SETUID \
-      --cap-add=SETGID \
       --network={{ browserless_container_network }} \
       {% if browserless_container_http_host_bind_port %}
       -p {{ browserless_container_http_host_bind_port }}:{{ browserless_container_http_port }} \
