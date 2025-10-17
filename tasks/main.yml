@@ -4,24 +4,24 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
-- name: Perform Apprise API installation tasks
-  when: apprise_enabled | bool
+- name: Perform Browserless API installation tasks
+  when: browserless_enabled | bool
   tags:
     - setup-all
-    - setup-apprise
+    - setup-browserless
     - install-all
-    - install-apprise
+    - install-browserless
   block:
-    - name: Validate Apprise API configuration
+    - name: Validate Browserless API configuration
       ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
-    - name: Install Apprise API
+    - name: Install Browserless API
       ansible.builtin.include_tasks: "{{ role_path }}/tasks/install.yml"
 
-- name: Perform Apprise API uninstallation tasks
-  when: not apprise_enabled | bool
+- name: Perform Browserless API uninstallation tasks
+  when: not browserless_enabled | bool
   tags:
     - setup-all
-    - setup-apprise
+    - setup-browserless
   block:
-    - name: Uninstall Apprise API
+    - name: Uninstall Browserless API
       ansible.builtin.include_tasks: "{{ role_path }}/tasks/uninstall.yml"

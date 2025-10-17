@@ -4,47 +4,47 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
-- name: Fail if required Apprise API settings not defined
+- name: Fail if required Browserless API settings not defined
   ansible.builtin.fail:
     msg: >-
       You need to define a required configuration setting (`{{ item }}`).
   when: "lookup('vars', item, default='') | string | length == 0"
   with_items:
-    - apprise_uid
-    - apprise_gid
-    - apprise_path_prefix
-    - apprise_container_network
+    - browserless_uid
+    - browserless_gid
+    - browserless_path_prefix
+    - browserless_container_network
 
-- name: Fail if Apprise API stateful mode option is invalid
+- name: Fail if Browserless API stateful mode option is invalid
   ansible.builtin.fail:
     msg: >-
-      apprise_environment_variables_apprise_stateful_mode must be 'hash', 'simple', or 'disabled'
-  when: "apprise_environment_variables_apprise_stateful_mode not in ['hash', 'simple', 'disabled']"
+      browserless_environment_variables_browserless_stateful_mode must be 'hash', 'simple', or 'disabled'
+  when: "browserless_environment_variables_browserless_stateful_mode not in ['hash', 'simple', 'disabled']"
 
 - name: Run if Traefik is enabled
-  when: apprise_container_labels_traefik_enabled | bool
+  when: browserless_container_labels_traefik_enabled | bool
   block:
-    - name: Fail if Traefik settings required for Apprise API are not defined
+    - name: Fail if Traefik settings required for Browserless API are not defined
       ansible.builtin.fail:
         msg: >-
           You need to define a required configuration setting (`{{ item }}`).
       when: "lookup('vars', item, default='') | string | length == 0"
       with_items:
-        - apprise_container_labels_traefik_hostname
-        - apprise_container_labels_traefik_path_prefix
+        - browserless_container_labels_traefik_hostname
+        - browserless_container_labels_traefik_path_prefix
 
-    - name: Fail if apprise_container_labels_traefik_path_prefix is different than /
+    - name: Fail if browserless_container_labels_traefik_path_prefix is different than /
       ansible.builtin.fail:
         msg: >-
-          apprise_container_labels_traefik_path_prefix (`{{ apprise_container_labels_traefik_path_prefix }}`) must be `/`.
-          Apprise API does not support hosting under a subpath yet.
-      when: "apprise_container_labels_traefik_path_prefix != '/'"
+          browserless_container_labels_traefik_path_prefix (`{{ browserless_container_labels_traefik_path_prefix }}`) must be `/`.
+          Browserless API does not support hosting under a subpath yet.
+      when: "browserless_container_labels_traefik_path_prefix != '/'"
 
     # We ensure it doesn't end with a slash, because we handle both (slash and no-slash).
-    # Knowing that `apprise_container_labels_traefik_path_prefix` does not end with a slash
+    # Knowing that `browserless_container_labels_traefik_path_prefix` does not end with a slash
     # ensures we know how to set these routes up without having to do "does it end with a slash" checks elsewhere.
-    - name: Fail if apprise_container_labels_traefik_path_prefix ends with a slash
+    - name: Fail if browserless_container_labels_traefik_path_prefix ends with a slash
       ansible.builtin.fail:
         msg: >-
-          apprise_container_labels_traefik_path_prefix (`{{ apprise_container_labels_traefik_path_prefix }}`) must either be `/` or not end with a slash (e.g. `/apprise`).
-      when: "apprise_container_labels_traefik_path_prefix != '/' and apprise_container_labels_traefik_path_prefix[-1] == '/'"
+          browserless_container_labels_traefik_path_prefix (`{{ browserless_container_labels_traefik_path_prefix }}`) must either be `/` or not end with a slash (e.g. `/browserless`).
+      when: "browserless_container_labels_traefik_path_prefix != '/' and browserless_container_labels_traefik_path_prefix[-1] == '/'"

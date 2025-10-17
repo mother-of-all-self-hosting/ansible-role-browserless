@@ -2,9 +2,9 @@
 galaxy_info:
   author: Suguru Hirahara
   company: progressiv
-  role_name: apprise
+  role_name: browserless
   namespace: progressiv
-  description: Apprise API
+  description: Browserless API
   platforms:
     - name: Debian
       versions:

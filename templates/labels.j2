@@ -5,55 +5,55 @@ SPDX-FileCopyrightText: 2025 Suguru Hirahara
 SPDX-License-Identifier: AGPL-3.0-or-later
 #}
 
-{% if apprise_container_labels_traefik_enabled %}
+{% if browserless_container_labels_traefik_enabled %}
 traefik.enable=true
 
-{% if apprise_container_labels_traefik_docker_network %}
-traefik.docker.network={{ apprise_container_labels_traefik_docker_network }}
+{% if browserless_container_labels_traefik_docker_network %}
+traefik.docker.network={{ browserless_container_labels_traefik_docker_network }}
 {% endif %}
 
 {% set middlewares = [] %}
 
-{% if apprise_container_labels_traefik_path_prefix != '/' %}
-traefik.http.middlewares.{{ apprise_identifier }}-slashless-redirect.redirectregex.regex=^({{ apprise_container_labels_traefik_path_prefix | quote }})$
-traefik.http.middlewares.{{ apprise_identifier }}-slashless-redirect.redirectregex.replacement=${1}/
-{% set middlewares = middlewares + [apprise_identifier + '-slashless-redirect'] %}
+{% if browserless_container_labels_traefik_path_prefix != '/' %}
+traefik.http.middlewares.{{ browserless_identifier }}-slashless-redirect.redirectregex.regex=^({{ browserless_container_labels_traefik_path_prefix | quote }})$
+traefik.http.middlewares.{{ browserless_identifier }}-slashless-redirect.redirectregex.replacement=${1}/
+{% set middlewares = middlewares + [browserless_identifier + '-slashless-redirect'] %}
 {% endif %}
 
-{% if apprise_container_labels_traefik_path_prefix != '/' %}
-traefik.http.middlewares.{{ apprise_identifier }}-strip-prefix.stripprefix.prefixes={{ apprise_container_labels_traefik_path_prefix }}
-{% set middlewares = middlewares + [apprise_identifier + '-strip-prefix'] %}
+{% if browserless_container_labels_traefik_path_prefix != '/' %}
+traefik.http.middlewares.{{ browserless_identifier }}-strip-prefix.stripprefix.prefixes={{ browserless_container_labels_traefik_path_prefix }}
+{% set middlewares = middlewares + [browserless_identifier + '-strip-prefix'] %}
 {% endif %}
 
-{% if apprise_container_labels_traefik_additional_request_headers.keys() | length > 0 %}
-{% for name, value in apprise_container_labels_traefik_additional_request_headers.items() %}
-traefik.http.middlewares.{{ apprise_identifier }}-add-request-headers.headers.customrequestheaders.{{ name }}={{ value }}
+{% if browserless_container_labels_traefik_additional_request_headers.keys() | length > 0 %}
+{% for name, value in browserless_container_labels_traefik_additional_request_headers.items() %}
+traefik.http.middlewares.{{ browserless_identifier }}-add-request-headers.headers.customrequestheaders.{{ name }}={{ value }}
 {% endfor %}
-{% set middlewares = middlewares + [apprise_identifier + '-add-request-headers'] %}
+{% set middlewares = middlewares + [browserless_identifier + '-add-request-headers'] %}
 {% endif %}
 
-{% if apprise_container_labels_traefik_additional_response_headers.keys() | length > 0 %}
-{% for name, value in apprise_container_labels_traefik_additional_response_headers.items() %}
-traefik.http.middlewares.{{ apprise_identifier }}-add-response-headers.headers.customresponseheaders.{{ name }}={{ value }}
+{% if browserless_container_labels_traefik_additional_response_headers.keys() | length > 0 %}
+{% for name, value in browserless_container_labels_traefik_additional_response_headers.items() %}
+traefik.http.middlewares.{{ browserless_identifier }}-add-response-headers.headers.customresponseheaders.{{ name }}={{ value }}
 {% endfor %}
-{% set middlewares = middlewares + [apprise_identifier + '-add-response-headers'] %}
+{% set middlewares = middlewares + [browserless_identifier + '-add-response-headers'] %}
 {% endif %}
 
-traefik.http.routers.{{ apprise_identifier }}.rule={{ apprise_container_labels_traefik_rule }}
-{% if apprise_container_labels_traefik_priority | int > 0 %}
-traefik.http.routers.{{ apprise_identifier }}.priority={{ apprise_container_labels_traefik_priority }}
+traefik.http.routers.{{ browserless_identifier }}.rule={{ browserless_container_labels_traefik_rule }}
+{% if browserless_container_labels_traefik_priority | int > 0 %}
+traefik.http.routers.{{ browserless_identifier }}.priority={{ browserless_container_labels_traefik_priority }}
 {% endif %}
-traefik.http.routers.{{ apprise_identifier }}.service={{ apprise_identifier }}
+traefik.http.routers.{{ browserless_identifier }}.service={{ browserless_identifier }}
 {% if middlewares | length > 0 %}
-traefik.http.routers.{{ apprise_identifier }}.middlewares={{ middlewares | join(',') }}
+traefik.http.routers.{{ browserless_identifier }}.middlewares={{ middlewares | join(',') }}
 {% endif %}
-traefik.http.routers.{{ apprise_identifier }}.entrypoints={{ apprise_container_labels_traefik_entrypoints }}
-traefik.http.routers.{{ apprise_identifier }}.tls={{ apprise_container_labels_traefik_tls | to_json }}
-{% if apprise_container_labels_traefik_tls %}
-traefik.http.routers.{{ apprise_identifier }}.tls.certResolver={{ apprise_container_labels_traefik_tls_certResolver }}
-{% endif %}
-
-traefik.http.services.{{ apprise_identifier }}.loadbalancer.server.port={{ apprise_container_http_port }}
+traefik.http.routers.{{ browserless_identifier }}.entrypoints={{ browserless_container_labels_traefik_entrypoints }}
+traefik.http.routers.{{ browserless_identifier }}.tls={{ browserless_container_labels_traefik_tls | to_json }}
+{% if browserless_container_labels_traefik_tls %}
+traefik.http.routers.{{ browserless_identifier }}.tls.certResolver={{ browserless_container_labels_traefik_tls_certResolver }}
 {% endif %}
 
-{{ apprise_container_labels_additional_labels }}
+traefik.http.services.{{ browserless_identifier }}.loadbalancer.server.port={{ browserless_container_http_port }}
+{% endif %}
+
+{{ browserless_container_labels_additional_labels }}

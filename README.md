@@ -5,9 +5,9 @@ SPDX-FileCopyrightText: 2025 Suguru Hirahara
 SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 
-# Apprise API Ansible role
+# Browserless API Ansible role
 
-This is an [Ansible](https://www.ansible.com/) role which installs [Apprise API](https://github.com/caronc/apprise-api) to run as a [Docker](https://www.docker.com/) container wrapped in a systemd service.
+This is an [Ansible](https://www.ansible.com/) role which installs [Browserless API](https://github.com/caronc/browserless-api) to run as a [Docker](https://www.docker.com/) container wrapped in a systemd service.
 
 This role *implicitly* depends on:
 
@@ -16,7 +16,7 @@ This role *implicitly* depends on:
 
 Check [defaults/main.yml](defaults/main.yml) for the full list of supported options.
 
-💡 See this [document](docs/configuring-apprise.md) for details about setting up the service with this role.
+💡 See this [document](docs/configuring-browserless.md) for details about setting up the service with this role.
 
 ## Development
 
