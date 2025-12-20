@@ -112,7 +112,9 @@ browserless_container_labels_traefik_additional_response_headers_custom: {}
 # browserless_container_labels_additional_labels: |
 #   my.label=1
 #   another.label="here"
-browserless_container_labels_additional_labels: ""
+browserless_container_labels_additional_labels: "{{ browserless_container_labels_additional_labels_auto | combine(browserless_container_labels_additional_labels_custom) }}"
+browserless_container_labels_additional_labels_auto: {}
+browserless_container_labels_additional_labels_custom: {}
 
 # A list of extra arguments to pass to the container (`docker run` command)
 browserless_container_extra_arguments: "{{ browserless_container_extra_arguments_auto + browserless_container_extra_arguments_custom }}"
