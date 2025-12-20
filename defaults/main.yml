@@ -176,5 +176,8 @@ browserless_systemd_wanted_services_list_default: []
 browserless_systemd_wanted_services_list_auto: []
 browserless_systemd_wanted_services_list_custom: []
 
+# Specify the timezone
+browserless_environment_variables_tz: UTC
+
 # Additional environment variables.
 browserless_environment_variables_additional_variables: ""
