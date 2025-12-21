@@ -117,7 +117,7 @@ browserless_container_labels_additional_labels: "{{ browserless_container_labels
 browserless_container_labels_additional_labels_auto: {}
 browserless_container_labels_additional_labels_custom: {}
 
-# A list of extra arguments to pass to the container (`docker run` command)
+# A list of extra arguments to pass to the container (`docker create` command)
 browserless_container_extra_arguments: "{{ browserless_container_extra_arguments_auto + browserless_container_extra_arguments_custom }}"
 browserless_container_extra_arguments_auto: []
 browserless_container_extra_arguments_custom: []
