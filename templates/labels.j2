@@ -56,4 +56,6 @@ traefik.http.routers.{{ browserless_identifier }}.tls.certResolver={{ browserles
 traefik.http.services.{{ browserless_identifier }}.loadbalancer.server.port={{ browserless_container_http_port }}
 {% endif %}
 
-{{ browserless_container_labels_additional_labels }}
+{% for arg in browserless_container_labels_additional_labels %}
+{{ arg }}
+{% endfor %}
