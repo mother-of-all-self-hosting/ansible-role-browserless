@@ -21,6 +21,7 @@ browserless_version: v2.38.2
 browserless_uid: "0"
 browserless_gid: "0"
 
+# The scheme used for serving Browserless.
 browserless_scheme: https
 
 # The hostname at which Browserless is served.
@@ -43,7 +44,7 @@ browserless_container_image_registry_prefix_upstream_default: ghcr.io/
 browserless_container_image_force_pull: "{{ browserless_container_image.endswith(':latest') }}"
 # TODO: add tasks to self-build the image
 
-# Controls whether the container exposes its HTTP port (tcp/8080 in the container).
+# Controls whether the container exposes its HTTP port (tcp/3000 in the container).
 #
 # Takes an "<ip>:<port>" or "<port>" value (e.g. "127.0.0.1:2586"), or empty string to not expose.
 browserless_container_http_host_bind_port: ""
