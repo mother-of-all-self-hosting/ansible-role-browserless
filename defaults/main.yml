@@ -118,6 +118,9 @@ browserless_container_labels_additional_labels: "{{ browserless_container_labels
 browserless_container_labels_additional_labels_auto: []
 browserless_container_labels_additional_labels_custom: []
 
+# Specify the size of the container's tmpfs volume
+browserless_container_tmpfs_tmp_size: 128m
+
 # A list of extra arguments to pass to the container (`docker create` command)
 browserless_container_extra_arguments: "{{ browserless_container_extra_arguments_auto + browserless_container_extra_arguments_custom }}"
 browserless_container_extra_arguments_auto: []
