@@ -15,7 +15,7 @@ browserless_identifier: browserless
 browserless_base_path: "/{{ browserless_identifier }}"
 
 # renovate: datasource=docker depName=ghcr.io/browserless/chromium
-browserless_version: v2.39.0
+browserless_version: v2.40.0
 
 # Browserless can only run as root user
 browserless_uid: "0"
