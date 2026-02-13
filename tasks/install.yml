@@ -24,6 +24,7 @@
   with_items:
     - env
     - labels
+  register: browserless_support_files_result
 
 - name: Ensure Browserless container image is pulled via community.docker.docker_image
   when: devture_systemd_docker_base_container_image_pull_method == 'ansible-module'
@@ -32,19 +33,19 @@
     source: "{{ 'pull' if ansible_version.major > 2 or ansible_version.minor > 7 else omit }}"
     force_source: "{{ browserless_container_image_force_pull if ansible_version.major > 2 or ansible_version.minor >= 8 else omit }}"
     force: "{{ omit if ansible_version.major > 2 or ansible_version.minor >= 8 else browserless_container_image_force_pull }}"
-  register: result
+  register: browserless_container_image_pull_result
   retries: "{{ devture_playbook_help_container_retries_count }}"
   delay: "{{ devture_playbook_help_container_retries_delay }}"
-  until: result is not failed
+  until: browserless_container_image_pull_result is not failed
 
 - name: Ensure Browserless container image is pulled via ansible.builtin.command
   when: devture_systemd_docker_base_container_image_pull_method == 'command'
   ansible.builtin.command:
     cmd: "{{ devture_systemd_docker_base_host_command_docker }} pull {{ browserless_container_image }}"
-  register: result
+  register: browserless_container_image_pull_result
   retries: "{{ devture_playbook_help_container_retries_count }}"
   delay: "{{ devture_playbook_help_container_retries_delay }}"
-  until: result is not failed
+  until: browserless_container_image_pull_result is not failed
   changed_when: "'Downloaded newer image' in result.stdout"
 
 - name: Ensure Browserless container network is created via community.docker.docker_network
@@ -72,3 +73,13 @@
     src: "{{ role_path }}/templates/systemd/browserless.service.j2"
     dest: "{{ devture_systemd_docker_base_systemd_path }}/{{ browserless_identifier }}.service"
     mode: "0644"
+  register: browserless_systemd_service_result
+
+- name: Determine whether Browserless needs a restart
+  ansible.builtin.set_fact:
+    browserless_restart_necessary: >-
+      {{
+        browserless_support_files_result.changed | default(false)
+        or browserless_systemd_service_result.changed | default(false)
+        or browserless_container_image_pull_result.changed | default(false)
+      }}
