@@ -38,7 +38,7 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
       --env-file={{ browserless_base_path }}/env \
       --label-file={{ browserless_base_path }}/labels \
       {% for volume in browserless_container_additional_volumes %}
-      --mount type={{ volume.type | default('bind' if '/' in volume.src else 'volume') }},src={{ volume.src }},dst={{ volume.dst }}{{ (',' + volume.options) if volume.options else '' }} \
+      --mount type={{ volume.type | default('bind' if '/' in volume.src else 'volume') }},src={{ volume.src }},dst={{ volume.dst }}{{ (',' + volume.options) if volume.options | default('') else '' }} \
       {% endfor %}
       --tmpfs=/tmp:rw,noexec,nosuid,size={{ browserless_container_tmpfs_tmp_size }} \
       {% for arg in browserless_container_extra_arguments %}
