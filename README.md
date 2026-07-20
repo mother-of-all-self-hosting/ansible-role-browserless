@@ -7,6 +7,9 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 
 # Browserless Ansible role
 
+>[!WARNING]
+> Browserless is licensed under [Server Side Public License, v1](https://github.com/browserless/browserless/blob/main/LICENSE), and therefore non-free software.
+
 This is an [Ansible](https://www.ansible.com/) role which installs [Browserless](https://docs.browserless.io) to run as a [Docker](https://www.docker.com/) container wrapped in a systemd service.
 
 This role *implicitly* depends on:
