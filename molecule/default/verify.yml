@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Suguru Hirahara
+# SPDX-FileCopyrightText: 2026 spatterlight
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+- name: Verify Browserless systemd service
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Wait for Browserless service to become active (up to 180s)
+      ansible.builtin.systemd:
+        name: browserless.service
+      register: browserless_service
+      until: browserless_service.status.ActiveState == 'active'
+      retries: 36
+      delay: 5
+
+    - name: Assert Browserless service is active
+      ansible.builtin.assert:
+        that: browserless_service.status.ActiveState == 'active'
+        fail_msg: "browserless.service not active ({{ browserless_service.status.ActiveState }})"
+        success_msg: "browserless.service is active"
+
+    - name: Retrieve Browserless service log for debugging
+      when: browserless_debug_service_enabled | bool
+      ansible.builtin.command:
+        cmd: journalctl -xeu browserless.service
+      changed_when: false
+
+    - name: Show Browserless systemd service status summary
+      ansible.builtin.debug:
+        msg:
+          - "Browserless systemd: {{ browserless_service.status.ActiveState }}"
