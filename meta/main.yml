@@ -3,8 +3,8 @@ galaxy_info:
   author: Suguru Hirahara
   company: progressiv
   role_name: browserless
-  namespace: progressiv
-  description: Browserless
+  namespace: mash
+  description: Ansible role to install Browserless, a service for running headless browsers in Docker
   platforms:
     - name: Debian
       versions:
