@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Slavi Pantaleev
+# SPDX-FileCopyrightText: 2023, 2026 Slavi Pantaleev
 # SPDX-FileCopyrightText: 2025 Suguru Hirahara
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
@@ -52,3 +52,21 @@
         msg: >-
           browserless_container_labels_traefik_path_prefix (`{{ browserless_container_labels_traefik_path_prefix }}`) must either be `/` or not end with a slash (e.g. `/browserless`).
       when: "browserless_container_labels_traefik_path_prefix != '/' and browserless_container_labels_traefik_path_prefix[-1] == '/'"
+
+    # Browserless authenticates nothing unless `TOKEN` is set, so an instance
+    # published through Traefik without one is an open renderer: anyone can
+    # POST a URL to `/content` or `/screenshot` and have it fetched from
+    # inside the container networks Browserless is attached to, or POST
+    # JavaScript to `/function` and have it run there.
+    - name: Warn if Browserless is exposed publicly without authentication
+      ansible.builtin.debug:
+        msg: >-
+          WARNING: Browserless is exposed at `{{ browserless_container_labels_traefik_hostname }}` with neither a token
+          (`browserless_auth_token`) nor basic authentication
+          (`browserless_container_labels_traefik_middleware_basic_auth_enabled`) configured.
+          Browserless does not authenticate requests unless a token is set, so anyone who can reach that hostname can
+          make it fetch and render arbitrary URLs (`/content`, `/screenshot`, `/pdf`) - including addresses that are
+          only reachable from your server - and execute arbitrary JavaScript on it (`/function`).
+          Set `browserless_auth_token` to a secret value, and append `?token=<that value>` to the URL that each
+          service connecting to Browserless is configured with.
+      when: "not browserless_auth_token and not browserless_container_labels_traefik_middleware_basic_auth_enabled | bool"

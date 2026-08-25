@@ -1,6 +1,6 @@
 <!--
 SPDX-FileCopyrightText: 2020 - 2024 MDAD project contributors
-SPDX-FileCopyrightText: 2020 - 2024 Slavi Pantaleev
+SPDX-FileCopyrightText: 2020 - 2026 Slavi Pantaleev
 SPDX-FileCopyrightText: 2020 Aaron Raimist
 SPDX-FileCopyrightText: 2020 Chris van Dijk
 SPDX-FileCopyrightText: 2020 Dominik Zajac
@@ -46,9 +46,32 @@ browserless_enabled: true
 ########################################################################
 ```
 
+### Requiring a token (recommended)
+
+Browserless does not authenticate anything unless it is given a token. Out of the box this role does not set one, which is what Browserless itself does too, and it keeps the instance usable by services on the same container network without any further configuration.
+
+That default is only defensible while the instance is reachable from the container network alone, because every endpoint is served to whoever can reach it:
+
+- `/content`, `/screenshot` and `/pdf` fetch and render whatever URL they are handed, from inside the container networks Browserless is attached to — so a caller can use it to reach services which are not published to the internet at all
+- `/function` runs JavaScript supplied in the request body
+- `ws://…/chromium` hands out a Chrome DevTools Protocol session, with the same reach
+
+To require a token, add the following configuration to your `vars.yml` file. Make sure to replace `TOKEN_HERE` with a secret value of your own (e.g. one generated with `pwgen -s 64 1`).
+
+```yaml
+browserless_auth_token: TOKEN_HERE
+```
+
+Unauthenticated requests are then answered with `401 Unauthorized`, and callers have to present the token as a `token` query parameter, an `Authorization: Bearer` header or an `X-API-Key` header.
+
+**Note**: setting a token also changes what the services connecting to Browserless need to be told — their connection URL has to carry `?token=TOKEN_HERE`. Services which a playbook wires up to Browserless automatically (such as Karakeep, RSS-Bridge and RSSHub) are not adjusted for you.
+
 ### Exposing the instance (optional)
 
 By default, the Browserless instance is not exposed externally, as it is mainly intended to be used in the internal network, connected to other services.
+
+>[!WARNING]
+> Do not expose Browserless publicly without either setting `browserless_auth_token` (see [above](#requiring-a-token-recommended)) or enabling basic authentication (`browserless_container_labels_traefik_middleware_basic_auth_enabled`). Without one of the two, anyone who finds the hostname can have your server fetch arbitrary URLs and run arbitrary JavaScript on your behalf. The role prints a warning during installation when it detects this combination.
 
 To expose it to the internet, add the following configuration to your `vars.yml` file. Make sure to replace `example.com` with your own value.
 

@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2023 - 2024 Nikita Chernyi
-# SPDX-FileCopyrightText: 2023 - 2025 Slavi Pantaleev
+# SPDX-FileCopyrightText: 2023 - 2026 Slavi Pantaleev
 # SPDX-FileCopyrightText: 2024 Sergio Durigan Junior
 # SPDX-FileCopyrightText: 2025 MASH project contributors
 # SPDX-FileCopyrightText: 2025 Suguru Hirahara
@@ -33,6 +33,23 @@ browserless_hostname: ""
 # Hosting Browserless under a subpath does not seem to be possible due to Browserless's
 # technical limitations.
 browserless_path_prefix: /
+
+# The token that callers must present to use this Browserless instance,
+# as the `token` query parameter, an `Authorization: Bearer` header or an
+# `X-API-Key` header.
+#
+# Browserless does not authenticate anything unless a token is configured.
+# With this left empty, every endpoint is served to whoever can reach the
+# container - including `/content` and `/screenshot`, which fetch and render
+# any URL reachable from it, and `/function`, which runs caller-supplied
+# JavaScript. An instance reachable from the internet without a token is an
+# open proxy into the networks the container sits on, so set a token (or keep
+# `browserless_container_labels_traefik_middleware_basic_auth_enabled` on)
+# whenever `browserless_hostname` points at a public name.
+#
+# Consumers on the same container network have to be told about it too: their
+# connection URL needs `?token=<this value>` appended.
+browserless_auth_token: ""
 
 browserless_container_image_app: chromium
 
