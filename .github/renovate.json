@@ -1,6 +1,13 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": [
+    "Patch releases of Browserless are automerged here. Browserless keeps no state that a patch release could migrate: this role mounts no volumes into the container at all, and the only writable path its unit gives it is a tmpfs `/tmp`, where Browserless creates a Chromium user-data-dir per session and deletes it again when the session ends. A new image starts from nothing every time, so the upgrade risk that keeps automerge off in the data-hosting roles of this fleet does not exist here - a bad patch is undone by pinning the previous version and re-running the playbook.",
+    "The patch releases themselves bear that out. Of the nine most recent ones (v2.52.1, v2.52.2, v2.53.1, v2.54.1, v2.54.2, v2.55.1, v2.55.2, v2.55.3 and v2.55.4, spanning five minor lines), every one is a bugfix, a log-level adjustment, a font packaging fix, a per-session TMPDIR change or a Node/puppeteer-core bump. Browserless moves Chromium itself on minor releases - v2.52.1 ships Chromium 148, v2.56.0 ships 151 - and those remain human-reviewed pull requests.",
+    "The automerge branch is covered by the Molecule run, which does considerably more than watch the unit turn active - it has to, because the unit carries `Restart=always` and would report a crash-looping container as active. The `default` scenario stands a web server up on Browserless's container network, has Browserless fetch and render its page (`/content`), run JavaScript against it (`/function`), screenshot an element of it and print it to PDF, checks that the settings the role's `env` file carries reached the process, and asserts that the running Browserless reports exactly the version `browserless_version` pins. A patch bump that broke startup, Chromium or the REST API fails there before it can merge.",
+    "`versioning=semver` on the annotation in defaults/main.yml is what keeps that decision clean. ghcr.io/browserless/chromium publishes 137 tags, of which every one but `latest` is a `vX.Y.Z`; the handful of `v2.6.1-beta-N` tags parse as prereleases and are skipped as unstable. The value carries its own `v`, which Renovate preserves when it rewrites the line."
+  ],
   "extends": [
-    "github>mother-of-all-self-hosting/renovate-config#v1.0.0"
+    "github>mother-of-all-self-hosting/renovate-config#v1.0.0",
+    "github>mother-of-all-self-hosting/renovate-config//patch-automerge#v1.0.0"
   ]
 }
