@@ -1,0 +1,187 @@
+# SPDX-FileCopyrightText: 2026 Slavi Pantaleev
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+- name: Verify Browserless authentication
+  hosts: all
+  become: true
+  gather_facts: false
+
+  vars:
+    browserless_probe_base_url: http://127.0.0.1:23001
+    browserless_probe_target_path: /var/tmp/browserless-molecule-auth-target
+    browserless_probe_target_url: "http://{{ browserless_probe_target_identifier }}/"
+    browserless_probe_marker: MASH-BROWSERLESS-MARKER-a07e53
+
+  tasks:
+    - name: Wait for Browserless service to become active (up to 180s)
+      ansible.builtin.systemd:
+        name: browserless.service
+      register: browserless_service
+      until: browserless_service.status.ActiveState == 'active'
+      retries: 36
+      delay: 5
+
+    - name: Assert Browserless service is active
+      ansible.builtin.assert:
+        that: browserless_service.status.ActiveState == 'active'
+        fail_msg: "browserless.service not active ({{ browserless_service.status.ActiveState }})"
+        success_msg: "browserless.service is active"
+
+    - name: Read the Browserless role's defaults
+      ansible.builtin.include_vars:
+        file: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/defaults/main.yml"
+        name: browserless_role_defaults
+
+    - name: Ensure the directory for the Browserless probe target page exists
+      ansible.builtin.file:
+        path: "{{ browserless_probe_target_path }}"
+        state: directory
+        mode: "0755"
+
+    - name: Ensure the Browserless probe target page is present
+      ansible.builtin.copy:
+        dest: "{{ browserless_probe_target_path }}/index.html"
+        mode: "0644"
+        content: |
+          <!doctype html>
+          <html lang="en">
+            <head><title>Browserless probe target</title></head>
+            <body><h1 id="mash-marker">{{ browserless_probe_marker }}</h1></body>
+          </html>
+
+    - name: Ensure no stale Browserless probe target container is left behind
+      ansible.builtin.command:
+        cmd: "docker rm -f {{ browserless_probe_target_identifier }}"
+      changed_when: false
+      failed_when: false
+
+    - name: Ensure the Browserless probe target container is running
+      ansible.builtin.command:
+        cmd: >-
+          docker run -d
+          --name={{ browserless_probe_target_identifier }}
+          --network={{ browserless_container_network }}
+          --mount type=bind,src={{ browserless_probe_target_path }},dst=/usr/share/nginx/html,readonly
+          docker.io/library/nginx:alpine
+      changed_when: false
+
+    - name: Wait for Browserless to answer HTTP requests (up to 120s)
+      ansible.builtin.uri:
+        url: "{{ browserless_probe_base_url }}/meta?token={{ browserless_auth_token }}"
+        return_content: true
+      register: browserless_meta
+      until: browserless_meta.status == 200
+      retries: 24
+      delay: 5
+
+    - name: Assert Browserless runs the version that the role pins
+      ansible.builtin.assert:
+        that: "browserless_meta.json.version == browserless_role_defaults.browserless_version | regex_replace('^v', '')"
+        fail_msg: >-
+          Browserless reports version {{ browserless_meta.json.version }},
+          while defaults/main.yml pins {{ browserless_role_defaults.browserless_version }}
+        success_msg: "Browserless runs {{ browserless_meta.json.version }}, as pinned by defaults/main.yml"
+
+    # The token being echoed back is what proves that `browserless_auth_token`
+    # travelled through the role's `env` template into the running process,
+    # rather than the process merely having come up with authentication off.
+    - name: Retrieve the Browserless runtime configuration
+      ansible.builtin.uri:
+        url: "{{ browserless_probe_base_url }}/config?token={{ browserless_auth_token }}"
+        return_content: true
+      register: browserless_config
+
+    - name: Assert Browserless is running with the token the role configured
+      ansible.builtin.assert:
+        that: browserless_config.json.token == browserless_auth_token
+        fail_msg: "Browserless reports token {{ browserless_config.json.token }}, not the configured one"
+        success_msg: "Browserless is running with the token that browserless_auth_token names"
+
+    # The negative controls. Each of these succeeds in the `default` scenario,
+    # where no token is configured, so a token that failed to reach the process
+    # would leave them succeeding here too.
+    - name: Request Browserless metadata without a token
+      ansible.builtin.uri:
+        url: "{{ browserless_probe_base_url }}/meta"
+        status_code: [200, 401]
+      register: browserless_meta_anonymous
+
+    - name: Assert unauthenticated metadata requests are refused
+      ansible.builtin.assert:
+        that: browserless_meta_anonymous.status == 401
+        fail_msg: "GET /meta without a token was answered with {{ browserless_meta_anonymous.status }}, not 401"
+        success_msg: "GET /meta without a token is refused"
+
+    - name: Request Browserless metadata with the wrong token
+      ansible.builtin.uri:
+        url: "{{ browserless_probe_base_url }}/meta?token=not-{{ browserless_auth_token }}"
+        status_code: [200, 401]
+      register: browserless_meta_wrong_token
+
+    - name: Assert requests carrying the wrong token are refused
+      ansible.builtin.assert:
+        that: browserless_meta_wrong_token.status == 401
+        fail_msg: "GET /meta with a wrong token was answered with {{ browserless_meta_wrong_token.status }}, not 401"
+        success_msg: "GET /meta with a wrong token is refused"
+
+    - name: Ask Browserless to render a page without a token
+      ansible.builtin.uri:
+        url: "{{ browserless_probe_base_url }}/content"
+        method: POST
+        body_format: json
+        body:
+          url: "{{ browserless_probe_target_url }}"
+        status_code: [200, 401]
+      register: browserless_content_anonymous
+
+    - name: Assert unauthenticated rendering requests are refused
+      ansible.builtin.assert:
+        that: browserless_content_anonymous.status == 401
+        fail_msg: "POST /content without a token was answered with {{ browserless_content_anonymous.status }}, not 401"
+        success_msg: "POST /content without a token is refused"
+
+    - name: Perform a WebSocket handshake against the Browserless CDP endpoint without a token
+      ansible.builtin.script:
+        cmd: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/molecule/ws-handshake.py 127.0.0.1 23001 /chromium"
+        executable: python3
+      register: browserless_websocket_handshake
+      changed_when: false
+
+    - name: Assert unauthenticated CDP WebSocket connections are refused
+      ansible.builtin.assert:
+        that: browserless_websocket_handshake.stdout | trim == '401'
+        fail_msg: "The CDP WebSocket endpoint answered {{ browserless_websocket_handshake.stdout | trim }} instead of 401"
+        success_msg: "The CDP WebSocket endpoint refuses connections without a token"
+
+    # And the other half: authentication is on, but not so on that Browserless
+    # has stopped working. The marker only exists on the probe target page.
+    - name: Have Browserless fetch and render the probe target page with the token
+      ansible.builtin.uri:
+        url: "{{ browserless_probe_base_url }}/content?token={{ browserless_auth_token }}"
+        method: POST
+        body_format: json
+        body:
+          url: "{{ browserless_probe_target_url }}"
+        return_content: true
+      register: browserless_content
+
+    - name: Assert the rendered content is the probe target page
+      ansible.builtin.assert:
+        that: browserless_probe_marker in browserless_content.content
+        fail_msg: "The content Browserless returned does not contain {{ browserless_probe_marker }}"
+        success_msg: "Browserless renders for callers that present the token"
+
+    - name: Retrieve Browserless service log for debugging
+      when: browserless_debug_service_enabled | bool
+      ansible.builtin.command:
+        cmd: journalctl -xeu browserless.service
+      changed_when: false
+
+    - name: Show Browserless verification summary
+      ansible.builtin.debug:
+        msg:
+          - "Browserless systemd: {{ browserless_service.status.ActiveState }}"
+          - "Browserless version: {{ browserless_meta.json.version }} (Chromium {{ browserless_meta.json.chromium }})"
+          - "Browserless authentication: token required"

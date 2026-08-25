@@ -13,7 +13,7 @@ dependency:
 driver:
   name: docker
 platforms:
-  - name: browserless-${MOLECULE_DISTRO:-ubuntu2604}-default
+  - name: browserless-${MOLECULE_DISTRO:-ubuntu2604}-auth
     image: "geerlingguy/docker-${MOLECULE_DISTRO:-ubuntu2604}-ansible:latest"
     command: ${MOLECULE_DOCKER_COMMAND:-""}
     volumes:
@@ -33,10 +33,8 @@ provisioner:
         browserless_debug_service_enabled: false
 
         # The container name of the tiny web server whose page the verification
-        # has Browserless render. It lives on Browserless's own container
-        # network, because Docker 28 no longer lets a container reach a port
-        # published on the host through the bridge gateway.
-        browserless_probe_target_identifier: browserless-molecule-default-target
+        # has Browserless render, once it is allowed to render anything.
+        browserless_probe_target_identifier: browserless-molecule-auth-target
 
         # Variables for Browserless
         # Spelled out (it matches the role's default) so that the
@@ -47,24 +45,14 @@ provisioner:
         browserless_uid: "0"
         browserless_gid: "0"
 
+        # The subject of this scenario. The `default` scenario leaves it empty
+        # and asserts that Browserless then serves everyone; here it is set,
+        # and every assertion is about the difference that makes.
+        browserless_auth_token: molecule-auth-token-2b7d41
+
         # Published so that the verification can talk to Browserless without
         # needing a container of its own on Browserless's network.
-        browserless_container_http_host_bind_port: 127.0.0.1:23000
-
-        # Deliberately neither the role's default (UTC) nor the container
-        # image's own default (America/Los_Angeles), so that this timezone
-        # showing up inside the running Chromium can only have come from the
-        # `env` file this role renders.
-        browserless_environment_variables_tz: Asia/Tokyo
-
-        # Values which Browserless reports back through `GET /config`, each
-        # different from its default (10, 10 and 30000). They are how the
-        # verification tells "the role's env file reached the process" apart
-        # from "the process came up with its own defaults".
-        browserless_environment_variables_additional_variables: |
-          CONCURRENT=7
-          QUEUED=13
-          TIMEOUT=45000
+        browserless_container_http_host_bind_port: 127.0.0.1:23001
   env:
     # Workaround for https://github.com/ansible/molecule/issues/4391
     ANSIBLE_ROLES_PATH: ${MOLECULE_PROJECT_DIRECTORY}/..:/.ansible/roles:/usr/share/ansible/roles:/etc/ansible/roles:~/.ansible/roles
