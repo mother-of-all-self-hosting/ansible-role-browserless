@@ -7,7 +7,7 @@
     "`versioning=semver` on the annotation in defaults/main.yml is what keeps that decision clean. ghcr.io/browserless/chromium publishes 137 tags, of which every one but `latest` is a `vX.Y.Z`; the handful of `v2.6.1-beta-N` tags parse as prereleases and are skipped as unstable. The value carries its own `v`, which Renovate preserves when it rewrites the line."
   ],
   "extends": [
-    "github>mother-of-all-self-hosting/renovate-config#v1.0.0",
-    "github>mother-of-all-self-hosting/renovate-config//patch-automerge#v1.0.0"
+    "github>mother-of-all-self-hosting/renovate-config#v1.1.0",
+    "github>mother-of-all-self-hosting/renovate-config//patch-automerge#v1.1.0"
   ]
 }
