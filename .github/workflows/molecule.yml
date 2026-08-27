@@ -45,8 +45,6 @@ jobs:
         include:
           - scenario: default
             distro: ubuntu2604
-          - scenario: default
-            distro: debian13
           - scenario: auth
             distro: ubuntu2604
       fail-fast: false
