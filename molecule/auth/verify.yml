@@ -177,7 +177,7 @@
         cmd: journalctl -xeu browserless.service
       changed_when: false
 
-    - name: Show Browserless verification summary
+    - name: Show the Browserless verification summary
       ansible.builtin.debug:
         msg:
           - "Browserless systemd: {{ browserless_service.status.ActiveState }}"
