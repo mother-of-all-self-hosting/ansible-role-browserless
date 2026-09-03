@@ -100,15 +100,11 @@
         fail_msg: "Browserless answered an anonymous request with {{ browserless_meta.status }}, so something configured a token"
         success_msg: "Browserless answers anonymous requests, as expected of the role's tokenless default"
 
-    # What earns Renovate the right to merge a bump without a human: the
-    # process really is the version that `browserless_version` names.
-    - name: Assert Browserless runs the version that the role pins
+    - name: Assert the running Browserless is the version this role installs
       ansible.builtin.assert:
         that: "browserless_meta.json.version == browserless_role_defaults.browserless_version | regex_replace('^v', '')"
-        fail_msg: >-
-          Browserless reports version {{ browserless_meta.json.version }},
-          while defaults/main.yml pins {{ browserless_role_defaults.browserless_version }}
-        success_msg: "Browserless runs {{ browserless_meta.json.version }}, as pinned by defaults/main.yml"
+        fail_msg: "Browserless reports {{ browserless_meta.json.version | default('none') }}, expected {{ browserless_role_defaults.browserless_version }}"
+        success_msg: "Browserless reports {{ browserless_meta.json.version }}"
 
     - name: Retrieve the Browserless runtime configuration
       ansible.builtin.uri:
