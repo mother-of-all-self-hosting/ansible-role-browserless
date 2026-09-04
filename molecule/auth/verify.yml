@@ -29,10 +29,13 @@
         fail_msg: "browserless.service not active ({{ browserless_service.status.ActiveState }})"
         success_msg: "browserless.service is active"
 
-    - name: Read the Browserless role's defaults
+    # The role is not included in this playbook, so its defaults are not in
+    # scope. Reading defaults/main.yml directly ties the version assertion
+    # below.
+    - name: Load the role defaults
       ansible.builtin.include_vars:
         file: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/defaults/main.yml"
-        name: browserless_role_defaults
+        name: browserless_defaults
 
     - name: Ensure the directory for the Browserless probe target page exists
       ansible.builtin.file:
@@ -78,8 +81,8 @@
 
     - name: Assert the running Browserless is the version this role installs
       ansible.builtin.assert:
-        that: "browserless_meta.json.version == browserless_role_defaults.browserless_version | regex_replace('^v', '')"
-        fail_msg: "Browserless reports {{ browserless_meta.json.version | default('none') }}, expected {{ browserless_role_defaults.browserless_version }}"
+        that: "browserless_meta.json.version == browserless_defaults.browserless_version | regex_replace('^v', '')"
+        fail_msg: "Browserless reports {{ browserless_meta.json.version | default('none') }}, expected {{ browserless_defaults.browserless_version }}"
         success_msg: "Browserless reports {{ browserless_meta.json.version }}"
 
     # The token being echoed back is what proves that `browserless_auth_token`
