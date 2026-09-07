@@ -19,20 +19,21 @@
     browserless_probe_marker: MASH-BROWSERLESS-MARKER-4f1c9e
 
   tasks:
-    - name: Wait for Browserless service to become active (up to 180s)
-      ansible.builtin.systemd:
+    - name: Wait for the Browserless systemd service to become active (up to 180s)
+      ansible.builtin.systemd_service:
         name: browserless.service
       register: browserless_service
       until: browserless_service.status.ActiveState == 'active'
       retries: 36
       delay: 5
 
-    # `Restart=always` makes systemd report a crash-looping container as
-    # active, so this is a starting point rather than a result.
-    - name: Assert Browserless service is active
+    # `Restart=always` in the systemd unit means that even a container which crashes
+    # and gets restarted reads as active here, so this is a precondition rather than
+    # a result.
+    - name: Assert the Browserless systemd service is active
       ansible.builtin.assert:
         that: browserless_service.status.ActiveState == 'active'
-        fail_msg: "browserless.service not active ({{ browserless_service.status.ActiveState }})"
+        fail_msg: "browserless.service is not active ({{ browserless_service.status.ActiveState }})"
         success_msg: "browserless.service is active"
 
     # The role is not included in this playbook, so its defaults are not in
@@ -251,7 +252,7 @@
         fail_msg: "What Browserless returned for the PDF is not a PDF"
         success_msg: "Browserless returned a PDF of the probe target page"
 
-    - name: Retrieve Browserless service log for debugging
+    - name: Retrieve the Browserless systemd service log for debugging
       when: browserless_debug_service_enabled | bool
       ansible.builtin.command:
         cmd: journalctl -xeu browserless.service
