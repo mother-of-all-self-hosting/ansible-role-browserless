@@ -183,7 +183,7 @@
     - name: Retrieve the Browserless systemd service log for debugging
       when: browserless_debug_service_enabled | bool
       ansible.builtin.command:
-        cmd: journalctl -xeu browserless.service
+        cmd: journalctl --no-pager --output=cat --unit=browserless.service
       changed_when: false
 
     - name: Show the Browserless verification summary
