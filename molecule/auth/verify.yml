@@ -15,6 +15,8 @@
     browserless_probe_marker: MASH-BROWSERLESS-MARKER-a07e53
 
   tasks:
+    - name: Verify that Browserless works
+      block:
     # The role is not included in this playbook, so its defaults are not in
     # scope. Reading defaults/main.yml directly ties the version assertion
     # below.
@@ -42,6 +44,12 @@
         that: browserless_service.status.ActiveState == 'active'
         fail_msg: "browserless.service is not active ({{ browserless_service.status.ActiveState }})"
         success_msg: "browserless.service is active"
+
+    - name: Retrieve the Browserless systemd service log for debugging
+      when: browserless_debug_service_enabled | bool
+      ansible.builtin.command:
+        cmd: journalctl --no-pager --output=cat --unit=browserless.service
+      changed_when: false
 
     - name: Ensure the directory for the Browserless probe target page exists
       ansible.builtin.file:
@@ -180,15 +188,25 @@
         fail_msg: "The content Browserless returned does not contain {{ browserless_probe_marker }}"
         success_msg: "Browserless renders for callers that present the token"
 
-    - name: Retrieve the Browserless systemd service log for debugging
-      when: browserless_debug_service_enabled | bool
-      ansible.builtin.command:
-        cmd: journalctl --no-pager --output=cat --unit=browserless.service
-      changed_when: false
-
     - name: Show the Browserless verification summary
       ansible.builtin.debug:
         msg:
           - "Browserless systemd: {{ browserless_service.status.ActiveState }}"
           - "Browserless version: {{ browserless_meta.json.version }} (Chromium {{ browserless_meta.json.chromium }})"
           - "Browserless authentication: token required"
+
+      rescue:
+        # Whatever went wrong, the reason is almost always in the systemd service log.
+        - name: Retrieve the Browserless systemd service log
+          ansible.builtin.command:
+            cmd: journalctl --no-pager --output=cat --unit=browserless.service
+          register: browserless_service_log
+          changed_when: false
+
+        - name: Show the Browserless systemd service log
+          ansible.builtin.debug:
+            var: browserless_service_log.stdout_lines
+
+        - name: Fail because verification did not pass
+          ansible.builtin.fail:
+            msg: "Browserless verification failed. The systemd service log is printed above."
