@@ -14,6 +14,9 @@
     browserless_probe_target_url: "http://{{ browserless_probe_target_identifier }}/"
     browserless_probe_marker: MASH-BROWSERLESS-MARKER-a07e53
 
+    browserless_verify_units:
+      - browserless.service
+
   tasks:
     - name: Verify that Browserless works
       block:
@@ -25,13 +28,14 @@
             file: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/defaults/main.yml"
             name: browserless_defaults
 
-        - name: Wait for the Browserless systemd service to become active (up to 180s)
+        - name: Wait for the Browserless systemd services to become active (up to 180s each)
           ansible.builtin.systemd_service:
-            name: browserless.service
-          register: browserless_service
-          until: browserless_service.status.ActiveState == 'active'
+            name: "{{ item }}"
+          register: browserless_services
+          until: browserless_services.status.ActiveState == 'active'
           retries: 36
           delay: 5
+          loop: "{{ browserless_verify_units }}"
           # So that giving up is reported by the assertion below rather than as a
           # wall of systemd unit properties.
           failed_when: false
@@ -39,17 +43,20 @@
         # `Restart=always` in the systemd unit means that even a container which crashes
         # and gets restarted reads as active here, so this is a precondition rather than
         # a result.
-        - name: Assert the Browserless systemd service is active
+        - name: Assert the Browserless systemd services are active
           ansible.builtin.assert:
-            that: browserless_service.status.ActiveState == 'active'
-            fail_msg: "browserless.service is not active ({{ browserless_service.status.ActiveState }})"
-            success_msg: "browserless.service is active"
+            that: browserless_services.results | map(attribute='status.ActiveState') | unique | list == ['active']
+            fail_msg: >-
+              Not every service is active:
+              {{ dict(browserless_verify_units | zip(browserless_services.results | map(attribute='status.ActiveState'))) }}
+            success_msg: "Every systemd service is active"
 
-        - name: Retrieve the Browserless systemd service log for debugging
+        - name: Retrieve the Browserless systemd services log for debugging
           when: browserless_debug_service_enabled | bool
           ansible.builtin.command:
-            cmd: journalctl --no-pager --output=cat --unit=browserless.service
+            cmd: "journalctl --no-pager --output=cat --unit={{ item }}"
           changed_when: false
+          loop: "{{ browserless_verify_units }}"
 
         - name: Ensure the directory for the Browserless probe target page exists
           ansible.builtin.file:
@@ -191,7 +198,7 @@
         - name: Show the Browserless verification summary
           ansible.builtin.debug:
             msg:
-              - "Browserless systemd: {{ browserless_service.status.ActiveState }}"
+              - "Browserless systemd: {% for unit, state in browserless_verify_units | zip(browserless_services.results | map(attribute='status.ActiveState')) %}{{ unit }} ({{ state }}){% if not loop.last %}, {% endif %}{% endfor %}"
               - "Browserless version: {{ browserless_meta.json.version }} (Chromium {{ browserless_meta.json.chromium }})"
               - "Browserless authentication: token required"
 
