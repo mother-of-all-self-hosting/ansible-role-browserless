@@ -31,6 +31,7 @@ provisioner:
       all:
         # Helper variables
         browserless_debug_service_enabled: false
+        browserless_restarts_check_enabled: true
 
         # The container name of the tiny web server whose page the verification
         # has Browserless render, once it is allowed to render anything.
