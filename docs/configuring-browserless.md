@@ -71,7 +71,7 @@ Unauthenticated requests are then answered with `401 Unauthorized`, and callers 
 By default, the Browserless instance is not exposed externally, as it is mainly intended to be used in the internal network, connected to other services.
 
 >[!WARNING]
-> Do not expose Browserless publicly without either setting `browserless_auth_token` (see [above](#requiring-a-token-recommended)) or enabling basic authentication (`browserless_container_labels_traefik_middleware_basic_auth_enabled`). Without one of the two, anyone who finds the hostname can have your server fetch arbitrary URLs and run arbitrary JavaScript on your behalf. The role prints a warning during installation when it detects this combination.
+> Do not expose Browserless publicly without either setting `browserless_auth_token` (refer to [this secion](#requiring-a-token-recommended)) or enabling basic authentication (`browserless_container_labels_traefik_middleware_basic_auth_enabled`). Without one of the two, anyone who finds the hostname can have your server fetch arbitrary URLs and run arbitrary JavaScript on your behalf. The role prints a warning during installation when it detects this combination.
 
 To expose it to the internet, add the following configuration to your `vars.yml` file. Make sure to replace `example.com` with your own value.
 
