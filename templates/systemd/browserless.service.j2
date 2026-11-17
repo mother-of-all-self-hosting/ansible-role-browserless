@@ -22,15 +22,13 @@ Type=simple
 Environment="HOME={{ devture_systemd_docker_base_systemd_unit_home_path }}"
 ExecStartPre={{ devture_systemd_docker_base_host_command_sh }} -c '{{ browserless_container_cleanup_command | trim | replace("\n", " ") }}'
 
-{#
-  Setting --read-only prevents the container from working properly.
-#}
 ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
       --rm \
       --name={{ browserless_identifier }} \
       --log-driver=none \
       --user={{ browserless_uid }}:{{ browserless_gid }} \
       --cap-drop=ALL \
+      --read-only \
       --network={{ browserless_container_network }} \
       {% if browserless_container_http_host_bind_port %}
       -p {{ browserless_container_http_host_bind_port }}:{{ browserless_container_http_port }} \

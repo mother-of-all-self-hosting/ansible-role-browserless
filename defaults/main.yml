@@ -18,8 +18,8 @@ browserless_base_path: "/{{ browserless_identifier }}"
 browserless_version: v2.63.1
 
 # Browserless can only run as root user
-browserless_uid: "0"
-browserless_gid: "0"
+browserless_uid: ""
+browserless_gid: ""
 
 # The scheme used for serving Browserless.
 browserless_scheme: https
