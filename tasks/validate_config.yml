@@ -21,8 +21,6 @@
   with_items:
     - browserless_uid
     - browserless_gid
-    - browserless_path_prefix
-    - browserless_container_network
 
 - name: Run if Traefik is enabled
   when: browserless_container_labels_traefik_enabled | bool
